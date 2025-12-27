@@ -11,3 +11,16 @@ def read_lines(raw_lines: list[str], first: int = 1, last: int = -1) -> list[lis
             parts = [part.strip().strip('"') for part in line.split(";")]
             lines.append(parts)
     return lines
+
+
+def get_column(header: list[str], column_name: str) -> int:
+    """
+    Finds the index of a column in the header row.
+    Case insensitive, leading/trailing spaces ignored.
+    """
+    try:
+        header = [col.lower().strip() for col in header]
+        index = header.index(column_name.lower().strip())
+        return index
+    except ValueError:
+        raise ValueError(f"Column '{column_name}' not found in header.")
