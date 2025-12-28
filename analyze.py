@@ -45,14 +45,14 @@ print("\nNeutrální kategorie (0 CZK):\n-------")
 for category in zeros.keys():
     print(f"- {category}")
 
-with open("summary.json", "w", encoding="utf-8") as f:
+with open("summary.json", "w", encoding="utf-8") as summary_file:
     json.dump(
         {
             "incomes": {k: round(v, 2) for k, v in total_incomes.items()},
             "expenses": {k: round(v, 2) for k, v in total_expenses.items()},
             "zeros": list(zeros.keys()),
         },
-        f,
+        summary_file,
         ensure_ascii=False,
         indent=4,
     )
