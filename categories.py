@@ -7,6 +7,9 @@ _MAPPING_PATH = "mapping"
 
 with open(os.path.join(_MAPPING_PATH, "mapping.json"), "r", encoding="utf-8") as f:
     _MAPPING: dict[str, dict[str, str]] = dict(json.load(f))
+    orig_partial = dict(_MAPPING["partial"])
+    for key in orig_partial:
+        _MAPPING["partial"][key.lower()] = _MAPPING["partial"].pop(key)
 
 
 def get_category(*keys: str) -> str:
@@ -17,6 +20,6 @@ def get_category(*keys: str) -> str:
             return category
         # There is no exact match, try partial matches
         for pattern in _MAPPING["partial"]:
-            if pattern in key:
+            if pattern in key.lower():
                 return _MAPPING["partial"][pattern]
     return f"Nezařazeno {keys}"

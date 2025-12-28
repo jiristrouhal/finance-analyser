@@ -56,7 +56,7 @@ def read_creditas(file_path: str) -> list[Transaction]:
             amount_col = get_column(reader[0], "Částka")
             category_col = get_column(reader[0], "Kategorie")
             return [
-                Transaction("creditas", floatify(row[amount_col]), row[category_col])
+                Transaction("creditas", floatify(row[amount_col]), row[category_col].rstrip('";'))
                 for row in reader[1:]
             ]
     except Exception as e:
@@ -91,16 +91,16 @@ csv_files = [file for file in files if os.path.isfile(file) and file.endswith(".
 
 
 data = []
-for csv_file in csv_files:
-    base = os.path.basename(csv_file).lower()
-    # if base.startswith("csob"):
-    #     data = read_csob(csv_file)
-    # elif base.lower().startswith("reiff"):
-    #     data = read_reiff(csv_file)
-    # elif base.lower().startswith("creditas"):
-    #     data = read_creditas(csv_file)
+for file in csv_files:
+    base = os.path.basename(file).lower()
+    if base.startswith("csob"):
+        data.extend(read_csob(file))
+    elif base.lower().startswith("reiff"):
+        data.extend(read_reiff(file))
+    elif base.lower().startswith("creditas"):
+        data.extend(read_creditas(file))
     if base.lower().startswith("unicredit"):
-        data = read_unicredit(csv_file)
+        data.extend(read_unicredit(file))
 
 
 print("Transactions")
