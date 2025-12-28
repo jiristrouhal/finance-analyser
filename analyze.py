@@ -71,10 +71,11 @@ def read_unicredit(file_path: str) -> list[Transaction]:
             reader = read_lines(csv_file.readlines(), first=4)
             amount_col = get_column(reader[0], "Částka")
             target_col = get_column(reader[0], "Příjemce")
+            details_col = get_column(reader[0], "Detaily transakce 1")
             assert len(reader[0]) == len(
                 reader[1]
             ), f"Header and row length mismatch in Unicredit CSV: {len(reader[0])} != {len(reader[1])}"
-            get_unicredit_category = lambda row: get_category(row[target_col])
+            get_unicredit_category = lambda row: get_category(row[target_col], row[details_col])
             return [
                 Transaction("unicredit", floatify(row[amount_col]), get_unicredit_category(row))
                 for row in reader[1:]
@@ -101,5 +102,7 @@ for csv_file in csv_files:
     if base.lower().startswith("unicredit"):
         data = read_unicredit(csv_file)
 
+
+print("Transactions")
 for d in data:
     print(d)
