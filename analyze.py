@@ -1,5 +1,6 @@
 import os
 import dataclasses
+from collections import defaultdict
 from typing import Literal
 
 from utils import read_lines, get_column, floatify
@@ -90,7 +91,7 @@ files = [os.path.join(DATA_PATH, file) for file in os.listdir(DATA_PATH)]
 csv_files = [file for file in files if os.path.isfile(file) and file.endswith(".csv")]
 
 
-data = []
+data: list[Transaction] = []
 for file in csv_files:
     base = os.path.basename(file).lower()
     if base.startswith("csob"):
@@ -103,6 +104,27 @@ for file in csv_files:
         data.extend(read_unicredit(file))
 
 
-print("Transactions")
-for d in data:
-    print(d)
+totals: dict[str, float] = defaultdict(float)
+
+for transaction in data:
+    totals[transaction.category] += transaction.amount
+
+
+total_incomes = {k: v for k, v in totals.items() if v >= 0}
+total_expenses = {k: v for k, v in totals.items() if v < 0}
+
+
+total = sum(totals.values())
+print(f"Overall total: {total:.2f} CZK\n")
+
+
+print("Incomes:")
+for category, amount in total_incomes.items():
+    print(f"{category}: {amount:.2f} CZK")
+print("\nExpenses:")
+for category, amount in total_expenses.items():
+    print(f"{category}: {amount:.2f} CZK")
+
+# print("Transactions")
+# for d in data:
+#     print(d)
