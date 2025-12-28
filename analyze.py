@@ -29,7 +29,7 @@ def extract_category(row: list[str], category_col: int, *other_cols: int) -> str
     ), "Column indices must be integers"
     category = row[category_col].rstrip(';"')
     if category and category not in INVALID_CATEGORIES:
-        return replace_category(category)
+        return category
     # If not found, use the keys to determine the category
     if not other_cols:
         return "Nezařazené"
@@ -169,7 +169,7 @@ for file in csv_files:
 totals: dict[str, float] = defaultdict(float)
 
 for transaction in data:
-    totals[transaction.category] += transaction.amount
+    totals[replace_category(transaction.category)] += transaction.amount
 
 
 total_incomes = {
@@ -179,16 +179,23 @@ total_expenses = {k: v for k, v in sorted(totals.items(), key=lambda item: item[
 zeros = {k: v for k, v in totals.items() if v == 0}
 
 
-total = sum(totals.values())
-print(f"Overall total: {total:.2f} CZK\n")
+def czk_format(amount: float) -> str:
+    return f"{amount:,.2f} CZK".replace(",", " ").replace(".", ",")
 
+
+total_income = sum(total_incomes.values()) if total_incomes else 0.0
+print(f"Příjmy celkem:      {czk_format(total_income):>30}")
+total_expense = sum(total_expenses.values()) if total_expenses else 0.0
+print(f"Výdaje celkem:     {czk_format(total_expense):>30}")
+total = sum(totals.values()) if totals else 0.0
+print(f"Bilance celkem:      {czk_format(total):>30}\n")
 
 print("Příjmy:\n-------")
 for category, amount in total_incomes.items():
-    print(f"- {category}: {amount:.2f} CZK")
+    print(f"- {category:<30} {czk_format(amount):>15}")
 print("\nVýdaje:\n-------")
 for category, amount in total_expenses.items():
-    print(f"- {category}: {amount:.2f} CZK")
+    print(f"- {category:<30} {czk_format(amount):>15}")
 print("\nNeutrální kategorie (0 CZK):\n-------")
 for category in zeros.keys():
     print(f"- {category}")
