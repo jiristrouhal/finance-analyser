@@ -27,15 +27,15 @@ def extract_category(row: list[str], category_col: int, *other_cols: int) -> str
     assert all(
         isinstance(col, int) for col in (category_col, *other_cols)
     ), "Column indices must be integers"
-    category = row[category_col].rstrip(';"')
-    if category and category not in INVALID_CATEGORIES:
-        return category
-    # If not found, use the keys to determine the category
-    if not other_cols:
-        return "Nezařazené"
 
-    row_keys = [row[col] for col in other_cols]
-    return get_category(row[category_col], *row_keys)
+    category = ""
+    if other_cols:
+        row_keys = [row[col] for col in other_cols]
+        category = get_category(*row_keys)
+    if not category or ("Nezařazeno" in category):
+        category = row[category_col].rstrip(';"')
+    category = replace_category(category.strip())
+    return category or "Nezařazené"
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
@@ -183,11 +183,11 @@ def czk_format(amount: float) -> str:
 
 
 total_income = sum(total_incomes.values()) if total_incomes else 0.0
-print(f"Příjmy celkem:      {czk_format(total_income):>30}")
+print(f"Příjmy celkem:     {czk_format(total_income):>30}")
 total_expense = sum(total_expenses.values()) if total_expenses else 0.0
 print(f"Výdaje celkem:     {czk_format(total_expense):>30}")
 total = sum(totals.values()) if totals else 0.0
-print(f"Bilance celkem:      {czk_format(total):>30}\n")
+print(f"Bilance celkem:    {czk_format(total):>30}\n")
 
 print("Příjmy:\n-------")
 for category, amount in total_incomes.items():
