@@ -23,3 +23,8 @@ def get_category(*keys: str) -> str:
             if pattern in key.lower():
                 return _MAPPING["partial"][pattern]
     return f"Nezařazeno {keys}"
+
+
+def replace_category(old: str) -> str:
+    """Replaces category in the transaction, if the replacement exists in the mapping."""
+    return _MAPPING["category_replace"].get(old, "") or old

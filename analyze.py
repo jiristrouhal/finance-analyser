@@ -1,15 +1,43 @@
 import os
 import dataclasses
 from collections import defaultdict
-from typing import Literal
+from typing import Literal, get_args
 
 from utils import read_lines, get_column, floatify
-from categories import get_category
+from categories import get_category, replace_category
+
+
+BankName = Literal["csob", "reiff", "creditas", "unicredit"]
+
+
+INVALID_CATEGORIES = {
+    "Nezařazeno",
+    "Nezařazené",
+    "Odchozí nezatříděná",
+    "",
+}
+
+
+def extract_category(row: list[str], category_col: int, *other_cols: int) -> str:
+    """Extracts the category from the row based on the category name and keys."""
+    # First try to read the category directly from the specified column
+    assert all(
+        isinstance(col, int) for col in (category_col, *other_cols)
+    ), "Column indices must be integers"
+    category = row[category_col].rstrip(';"')
+    if category and category not in INVALID_CATEGORIES:
+        return replace_category(category)
+    # If not found, use the keys to determine the category
+    if not other_cols:
+        return "Nezařazené"
+
+    row_keys = [row[col] for col in other_cols]
+    return get_category(row[category_col], *row_keys)
 
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class Transaction:
-    bank: Literal["csob", "reiff", "creditas", "unicredit"]
+    bank: BankName
     amount: float
     category: str
 
@@ -25,7 +53,17 @@ def read_csob(file_path: str) -> list[Transaction]:
             amount_col = get_column(reader[0], "Částka")
             category_col = get_column(reader[0], "Kategorie")
             return [
-                Transaction("csob", floatify(row[amount_col]), row[category_col])
+                Transaction(
+                    "csob",
+                    floatify(row[amount_col]),
+                    extract_category(
+                        row,
+                        category_col,
+                        get_column(reader[0], "jméno protistrany"),
+                        get_column(reader[0], "vlastní poznámka"),
+                        get_column(reader[0], "zpráva"),
+                    ),
+                )
                 for row in reader[1:]
             ]
     except Exception as e:
@@ -40,8 +78,13 @@ def read_reiff(file_path: str) -> list[Transaction]:
             reader = read_lines(csv_file.readlines())
             amount_col = get_column(reader[0], "Zaúčtovaná částka")
             note_col = get_column(reader[0], "Poznámka")
+            counterparty_col = get_column(reader[0], "Název protiúčtu")
             return [
-                Transaction("reiff", floatify(row[amount_col]), get_category(row[note_col]))
+                Transaction(
+                    "reiff",
+                    floatify(row[amount_col]),
+                    get_category(row[note_col], row[counterparty_col]),
+                )
                 for row in reader[1:]
             ]
     except Exception as e:
@@ -57,7 +100,11 @@ def read_creditas(file_path: str) -> list[Transaction]:
             amount_col = get_column(reader[0], "Částka")
             category_col = get_column(reader[0], "Kategorie")
             return [
-                Transaction("creditas", floatify(row[amount_col]), row[category_col].rstrip('";'))
+                Transaction(
+                    "creditas",
+                    floatify(row[amount_col]),
+                    extract_category(row, category_col, get_column(reader[0], "Název protiúčtu")),
+                )
                 for row in reader[1:]
             ]
     except Exception as e:
@@ -91,6 +138,12 @@ files = [os.path.join(DATA_PATH, file) for file in os.listdir(DATA_PATH)]
 csv_files = [file for file in files if os.path.isfile(file) and file.endswith(".csv")]
 
 
+for file in csv_files:
+    bank = os.path.basename(file).split("_")[0].lower()
+    if bank not in get_args(BankName):
+        raise ValueError(f"\033[31mUnknown bank file format: {file}\033[0m")
+
+
 data: list[Transaction] = []
 for file in csv_files:
     base = os.path.basename(file).lower()
@@ -100,7 +153,7 @@ for file in csv_files:
         data.extend(read_reiff(file))
     elif base.lower().startswith("creditas"):
         data.extend(read_creditas(file))
-    if base.lower().startswith("unicredit"):
+    elif base.lower().startswith("unicredit"):
         data.extend(read_unicredit(file))
 
 
@@ -114,17 +167,17 @@ total_incomes = {k: v for k, v in totals.items() if v >= 0}
 total_expenses = {k: v for k, v in totals.items() if v < 0}
 
 
-total = sum(totals.values())
-print(f"Overall total: {total:.2f} CZK\n")
+# total = sum(totals.values())
+# print(f"Overall total: {total:.2f} CZK\n")
 
 
-print("Incomes:")
-for category, amount in total_incomes.items():
-    print(f"{category}: {amount:.2f} CZK")
-print("\nExpenses:")
-for category, amount in total_expenses.items():
-    print(f"{category}: {amount:.2f} CZK")
+# print("Příjmy:\n-------")
+# for category, amount in total_incomes.items():
+#     print(f"- {category}: {amount:.2f} CZK")
+# print("\nVýdaje:\n-------")
+# for category, amount in total_expenses.items():
+#     print(f"- {category}: {amount:.2f} CZK")
 
-# print("Transactions")
-# for d in data:
-#     print(d)
+print("Transactions")
+for d in data:
+    print(d)
