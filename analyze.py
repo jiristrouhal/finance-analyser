@@ -101,14 +101,13 @@ def read_creditas(file_path: str) -> list[Transaction]:
         with open(file_path, mode="r", newline="", encoding="utf-8-sig") as csv_file:
             reader = read_lines(csv_file.readlines(), first=4)
             amount_col = get_column(reader[0], "Částka")
-            category_col = get_column(reader[0], "Kategorie")
             return [
                 Transaction(
                     "creditas",
                     floatify(row[amount_col]),
                     extract_category(
                         row,
-                        category_col,
+                        get_column(reader[0], "Kategorie"),
                         get_column(reader[0], "Název protiúčtu"),
                         get_column(reader[0], "Protiúčet"),
                         get_column(reader[0], "Zpráva pro protistranu"),
