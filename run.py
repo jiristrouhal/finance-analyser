@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from collections import defaultdict
 
 from read import load_data, czk_format, BANK_NAMES
@@ -17,9 +18,10 @@ for csv_path in csv_paths:
 data = load_data(*csv_paths)
 
 totals: dict[str, float] = defaultdict(float)
+days = sys.argv[1] if len(sys.argv) > 1 else "30"
 
 for transaction in data:
-    totals[transaction.category] += transaction.amount
+    totals[transaction.category] += transaction.amount * (30 / int(days))
 
 total_incomes = {
     k: v for k, v in sorted(totals.items(), key=lambda item: item[1], reverse=True) if v > 0
