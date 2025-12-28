@@ -14,6 +14,7 @@ INVALID_CATEGORIES = {
     "Nezařazeno",
     "Nezařazené",
     "Odchozí nezatříděná",
+    "Příjem",
     "",
 }
 
@@ -103,7 +104,12 @@ def read_creditas(file_path: str) -> list[Transaction]:
                 Transaction(
                     "creditas",
                     floatify(row[amount_col]),
-                    extract_category(row, category_col, get_column(reader[0], "Název protiúčtu")),
+                    extract_category(
+                        row,
+                        category_col,
+                        get_column(reader[0], "Název protiúčtu"),
+                        get_column(reader[0], "Protiúčet"),
+                    ),
                 )
                 for row in reader[1:]
             ]
@@ -167,17 +173,17 @@ total_incomes = {k: v for k, v in totals.items() if v >= 0}
 total_expenses = {k: v for k, v in totals.items() if v < 0}
 
 
-# total = sum(totals.values())
-# print(f"Overall total: {total:.2f} CZK\n")
+total = sum(totals.values())
+print(f"Overall total: {total:.2f} CZK\n")
 
 
-# print("Příjmy:\n-------")
-# for category, amount in total_incomes.items():
-#     print(f"- {category}: {amount:.2f} CZK")
-# print("\nVýdaje:\n-------")
-# for category, amount in total_expenses.items():
-#     print(f"- {category}: {amount:.2f} CZK")
+print("Příjmy:\n-------")
+for category, amount in total_incomes.items():
+    print(f"- {category}: {amount:.2f} CZK")
+print("\nVýdaje:\n-------")
+for category, amount in total_expenses.items():
+    print(f"- {category}: {amount:.2f} CZK")
 
-print("Transactions")
-for d in data:
-    print(d)
+# print("Transactions")
+# for d in data:
+#     print(d)
