@@ -7,8 +7,10 @@ def read_lines(raw_lines: list[str], first: int = 1, last: int = -1) -> list[lis
     assert first <= last, "First line number must be less than or equal to last line number."
     for line in raw_lines[first - 1 : last + 1]:
         line = line.strip()
+        parts = [part.strip().strip('"') for part in line.split('";"')]
+        if len(parts) == 1:
+            parts = [part.strip() for part in line.split(";")]
         if line:
-            parts = [part.strip().strip('"') for part in line.split(";")]
             lines.append(parts)
     return lines
 
@@ -24,3 +26,8 @@ def get_column(header: list[str], column_name: str) -> int:
         return index
     except ValueError:
         raise ValueError(f"Column '{column_name}' not found in header.")
+
+
+def floatify(value: str) -> float:
+    """Converts a string to a float, handling commas and spaces."""
+    return float(value.replace(",", ".").replace(" ", ""))
