@@ -38,6 +38,10 @@ def floatify(value: str) -> float:
     return float(value.replace(",", ".").replace(" ", ""))
 
 
+def czk_format(amount: float) -> str:
+    return f"{amount:,.2f} CZK".replace(",", " ").replace(".", ",")
+
+
 def _split_line(line: str) -> list[str]:
     """Splits a line into parts based on semicolon delimiter."""
     line = line.strip()
