@@ -9,6 +9,9 @@ from categories import get_category, replace_category
 BankName = Literal["csob", "reiff", "creditas", "unicredit"]
 
 
+BANK_NAMES = set(get_args(BankName))
+
+
 INVALID_CATEGORIES = {
     "Nezařazeno",
     "Nezařazené",

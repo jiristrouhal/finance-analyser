@@ -1,11 +1,8 @@
+import json
 import os
 from collections import defaultdict
-from typing import Literal, get_args
 
-from read import load_data, czk_format
-
-
-BankName = Literal["csob", "reiff", "creditas", "unicredit"]
+from read import load_data, czk_format, BANK_NAMES
 
 
 DATA_PATH = "data"
@@ -13,7 +10,7 @@ paths = [os.path.join(DATA_PATH, path) for path in os.listdir(DATA_PATH)]
 csv_paths = [path for path in paths if os.path.isfile(path) and path.endswith(".csv")]
 for csv_path in csv_paths:
     bank = os.path.basename(csv_path).split("_")[0].lower()
-    if bank not in get_args(BankName):
+    if bank not in BANK_NAMES:
         raise ValueError(f"\033[31mUnknown bank file format: {csv_path}\033[0m")
 
 
@@ -47,3 +44,15 @@ for category, amount in total_expenses.items():
 print("\nNeutrální kategorie (0 CZK):\n-------")
 for category in zeros.keys():
     print(f"- {category}")
+
+with open("summary.json", "w", encoding="utf-8") as f:
+    json.dump(
+        {
+            "incomes": {k: round(v, 2) for k, v in total_incomes.items()},
+            "expenses": {k: round(v, 2) for k, v in total_expenses.items()},
+            "zeros": list(zeros.keys()),
+        },
+        f,
+        ensure_ascii=False,
+        indent=4,
+    )
