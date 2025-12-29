@@ -11,6 +11,7 @@ BankName = Literal["csob", "reiff", "creditas", "unicredit"]
 
 BANK_NAMES = set(get_args(BankName))
 
+DATA_PATH = "data"
 
 INVALID_CATEGORIES = {
     "Nezařazeno",
@@ -46,6 +47,16 @@ def load_data(*csv_paths: str) -> list[Transaction]:
         elif base.lower().startswith("unicredit"):
             data.extend(_read_unicredit(file))
     return data
+
+
+def collect_csv_paths() -> list[str]:
+    paths = [os.path.join(DATA_PATH, path) for path in os.listdir(DATA_PATH)]
+    csv_paths = [path for path in paths if os.path.isfile(path) and path.endswith(".csv")]
+    for csv_path in csv_paths:
+        bank = os.path.basename(csv_path).split("_")[0].lower()
+        if bank not in BANK_NAMES:
+            raise ValueError(f"\033[31mUnknown bank file format: {csv_path}\033[0m")
+    return csv_paths
 
 
 def _extract_category(row: list[str], category_col: int, *other_cols: int) -> str:
