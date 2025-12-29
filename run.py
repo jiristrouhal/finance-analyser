@@ -6,7 +6,7 @@ from process import process_transactions
 
 csv_paths = collect_csv_paths()
 data = load_data(*csv_paths)
-result = process_transactions(data, days=30)
+result = process_transactions(data, days=91)
 
 
 total_income = sum(result.total_incomes.values()) if result.total_incomes else 0.0
