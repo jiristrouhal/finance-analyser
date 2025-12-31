@@ -1,4 +1,5 @@
 import json
+import sys
 
 from read import load_data, czk_format, collect_csv_paths
 from process import process_transactions
@@ -6,7 +7,8 @@ from process import process_transactions
 
 csv_paths = collect_csv_paths()
 data = load_data(*csv_paths)
-result = process_transactions(data, days=91)
+days = int(sys.argv[1]) if len(sys.argv) > 1 else 30
+result = process_transactions(data, days=days)
 
 
 total_income = sum(result.total_incomes.values()) if result.total_incomes else 0.0
