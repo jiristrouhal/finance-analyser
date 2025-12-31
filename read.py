@@ -54,11 +54,7 @@ def collect_csv_paths() -> list[str]:
     csv_paths = [path for path in paths if os.path.isfile(path) and path.endswith(".csv")]
     for csv_path in csv_paths:
         bank = os.path.basename(csv_path).split("_")[0].lower()
-<<<<<<< HEAD
-        if bank not in BANK_NAMES:
-=======
         if not any(bank in bn for bn in BANK_NAMES):
->>>>>>> 40d272d0a6868a73840f3e151b1ee9afe35dbe39
             raise ValueError(f"\033[31mUnknown bank file format: {csv_path}\033[0m")
     return csv_paths
 
