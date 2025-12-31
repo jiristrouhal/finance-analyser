@@ -6,7 +6,7 @@ from utils import read_lines, get_column, floatify, czk_format
 from categories import get_category, replace_category
 
 
-BankName = Literal["csob", "reiff", "creditas", "unicredit"]
+BankName = Literal["csob", "raiffeisenbank", "creditas", "unicreditbank"]
 
 
 BANK_NAMES = set(get_args(BankName))
@@ -40,11 +40,11 @@ def load_data(*csv_paths: str) -> list[Transaction]:
         base = os.path.basename(file).lower()
         if base.startswith("csob"):
             data.extend(_read_csob(file))
-        elif base.lower().startswith("reiff"):
+        elif base.lower().startswith("raif"):
             data.extend(_read_reiff(file))
-        elif base.lower().startswith("creditas"):
+        elif base.lower().startswith("cred"):
             data.extend(_read_creditas(file))
-        elif base.lower().startswith("unicredit"):
+        elif base.lower().startswith("unic"):
             data.extend(_read_unicredit(file))
     return data
 
@@ -54,7 +54,7 @@ def collect_csv_paths() -> list[str]:
     csv_paths = [path for path in paths if os.path.isfile(path) and path.endswith(".csv")]
     for csv_path in csv_paths:
         bank = os.path.basename(csv_path).split("_")[0].lower()
-        if bank not in BANK_NAMES:
+        if not any(bank in bn for bn in BANK_NAMES):
             raise ValueError(f"\033[31mUnknown bank file format: {csv_path}\033[0m")
     return csv_paths
 

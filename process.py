@@ -15,7 +15,7 @@ def process_transactions(data: list[Transaction], days: int) -> Result:
     totals: dict[str, float] = defaultdict(float)
 
     for transaction in data:
-        totals[transaction.category] += transaction.amount * (30.0 / days)
+        totals[transaction.category] += transaction.amount * ((365 / 12.0) / days)
 
     total_incomes = {
         k: v for k, v in sorted(totals.items(), key=lambda item: item[1], reverse=True) if v > 0
