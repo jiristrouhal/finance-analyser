@@ -10,9 +10,6 @@ data = load_data(*csv_paths)
 days = int(sys.argv[1]) if len(sys.argv) > 1 else 30
 result = process_transactions(data, days=days)
 
-for d in data:
-    print(d)
-
 
 total_income = sum(result.total_incomes.values()) if result.total_incomes else 0.0
 print(f"Příjmy celkem:     {czk_format(total_income):>30}")
