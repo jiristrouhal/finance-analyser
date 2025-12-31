@@ -93,6 +93,7 @@ def _read_csob(file_path: str) -> list[Transaction]:
                         get_column(reader[0], "jméno protistrany"),
                         get_column(reader[0], "vlastní poznámka"),
                         get_column(reader[0], "zpráva"),
+                        get_column(reader[0], "číslo protiúčtu")
                     ),
                 )
                 for row in reader[1:]
@@ -110,11 +111,12 @@ def _read_reiff(file_path: str) -> list[Transaction]:
             amount_col = get_column(reader[0], "Zaúčtovaná částka")
             note_col = get_column(reader[0], "Poznámka")
             counterparty_col = get_column(reader[0], "Název protiúčtu")
+            counterparty_account_col = get_column(reader[0], "Číslo protiúčtu")
             return [
                 Transaction(
                     "reiff",
                     floatify(row[amount_col]),
-                    get_category(row[note_col], row[counterparty_col]),
+                    get_category(row[note_col], row[counterparty_col], row[counterparty_account_col]),
                 )
                 for row in reader[1:]
             ]
