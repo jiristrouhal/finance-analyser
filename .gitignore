@@ -6,3 +6,4 @@ data/*
 mapping/*.json
 summary.json
 details.json
+combined_summary.json
