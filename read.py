@@ -29,9 +29,11 @@ class Transaction:
     bank: BankName
     amount: float
     category: str
+    counterparty: str = ""
+    date: str = ""
 
     def __str__(self) -> str:
-        return f"({self.bank})\t-\t{self.category}: {self.amount:.2f} CZK"
+        return f"({self.bank})\t-\t{self.category}: {self.amount:.2f} ({self.counterparty}, {self.date}) CZK"
 
 
 def load_data(*csv_paths: str) -> list[Transaction]:
@@ -83,6 +85,9 @@ def _read_csob(file_path: str) -> list[Transaction]:
             reader = read_lines(csv_file.readlines(), first=3)
             amount_col = get_column(reader[0], "Částka")
             category_col = get_column(reader[0], "Kategorie")
+            counterparty_number_col = get_column(reader[0], "číslo protiúčtu")
+            counterparty_col = get_column(reader[0], "jméno protistrany")
+            date_col = get_column(reader[0], "datum zaúčtování")
             return [
                 Transaction(
                     "csob",
@@ -93,8 +98,10 @@ def _read_csob(file_path: str) -> list[Transaction]:
                         get_column(reader[0], "jméno protistrany"),
                         get_column(reader[0], "vlastní poznámka"),
                         get_column(reader[0], "zpráva"),
-                        get_column(reader[0], "číslo protiúčtu")
+                        get_column(reader[0], "číslo protiúčtu"),
                     ),
+                    counterparty=row[counterparty_col] or row[counterparty_number_col],
+                    date=row[date_col],
                 )
                 for row in reader[1:]
             ]
@@ -112,11 +119,16 @@ def _read_reiff(file_path: str) -> list[Transaction]:
             note_col = get_column(reader[0], "Poznámka")
             counterparty_col = get_column(reader[0], "Název protiúčtu")
             counterparty_account_col = get_column(reader[0], "Číslo protiúčtu")
+            date_col = get_column(reader[0], "Datum zaúčtování")
             return [
                 Transaction(
-                    "reiff",
+                    "raiffeisenbank",
                     floatify(row[amount_col]),
-                    get_category(row[note_col], row[counterparty_col], row[counterparty_account_col]),
+                    get_category(
+                        row[note_col], row[counterparty_col], row[counterparty_account_col]
+                    ),
+                    counterparty=row[counterparty_col] or row[counterparty_account_col],
+                    date=row[date_col],
                 )
                 for row in reader[1:]
             ]
@@ -131,6 +143,9 @@ def _read_creditas(file_path: str) -> list[Transaction]:
         with open(file_path, mode="r", newline="", encoding="utf-8-sig") as csv_file:
             reader = read_lines(csv_file.readlines(), first=4)
             amount_col = get_column(reader[0], "Částka")
+            counterparty_col = get_column(reader[0], "Protiúčet")
+            counterparty_name_col = get_column(reader[0], "Název protiúčtu")
+            date_col = get_column(reader[0], "Datum zaúčtování")
             return [
                 Transaction(
                     "creditas",
@@ -142,6 +157,8 @@ def _read_creditas(file_path: str) -> list[Transaction]:
                         get_column(reader[0], "Protiúčet"),
                         get_column(reader[0], "Zpráva pro protistranu"),
                     ),
+                    counterparty=row[counterparty_name_col] or row[counterparty_col],
+                    date=row[date_col],
                 )
                 for row in reader[1:]
             ]
@@ -158,12 +175,19 @@ def _read_unicredit(file_path: str) -> list[Transaction]:
             amount_col = get_column(reader[0], "Částka")
             target_col = get_column(reader[0], "Příjemce")
             details_col = get_column(reader[0], "Detaily transakce 1")
+            date_col = get_column(reader[0], "Datum rezervace")
             assert len(reader[0]) == len(
                 reader[1]
             ), f"Header and row length mismatch in Unicredit CSV: {len(reader[0])} != {len(reader[1])}"
             get_unicredit_category = lambda row: get_category(row[target_col], row[details_col])
             return [
-                Transaction("unicredit", floatify(row[amount_col]), get_unicredit_category(row))
+                Transaction(
+                    "unicreditbank",
+                    floatify(row[amount_col]),
+                    get_unicredit_category(row),
+                    counterparty=row[target_col],
+                    date=row[date_col],
+                )
                 for row in reader[1:]
             ]
     except Exception as e:

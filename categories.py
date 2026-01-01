@@ -14,6 +14,7 @@ with open(os.path.join(_MAPPING_PATH, "mapping.json"), "r", encoding="utf-8") as
 
 def get_category(*keys: str) -> str:
     """Gets the category for a given key based on the mapping."""
+    keys = tuple([key.strip() for key in keys if key.strip()])
     for key in keys:
         category = _MAPPING["exact"].get(key, "")
         if category:

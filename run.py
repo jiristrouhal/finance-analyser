@@ -1,5 +1,6 @@
 import json
 import sys
+from collections import defaultdict
 
 from read import load_data, czk_format, collect_csv_paths
 from process import process_transactions
@@ -28,6 +29,23 @@ for category, amount in result.total_expenses.items():
 print("\nNeutrální kategorie (0 CZK):\n-------")
 for category in result.zeros.keys():
     print(f"- {category}")
+
+
+with open("details.json", "w", encoding="utf-8") as details_file:
+
+    data_dict = defaultdict(list)
+    for transaction in data:
+        data_dict[transaction.category].append(
+            {
+                "banka": transaction.bank,
+                "částka": czk_format(round(transaction.amount, 2)),
+                "protistrana": transaction.counterparty,
+                "datum": transaction.date,
+            }
+        )
+
+    json.dump(data_dict, details_file, ensure_ascii=False, indent=2)
+
 
 with open("summary.json", "w", encoding="utf-8") as summary_file:
     json.dump(
