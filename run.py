@@ -39,7 +39,7 @@ with open("details.json", "w", encoding="utf-8") as details_file:
             {
                 "banka": transaction.bank,
                 "částka": czk_format(round(transaction.amount, 2)),
-                "protistrana": transaction.counterparty,
+                "info": transaction.info,
                 "datum": transaction.date,
             }
         )

@@ -29,11 +29,11 @@ class Transaction:
     bank: BankName
     amount: float
     category: str
-    counterparty: str = ""
+    info: str = ""
     date: str = ""
 
     def __str__(self) -> str:
-        return f"({self.bank})\t-\t{self.category}: {self.amount:.2f} ({self.counterparty}, {self.date}) CZK"
+        return f"({self.bank})\t-\t{self.category}: {self.amount:.2f} ({self.info}, {self.date}) CZK"
 
 
 def load_data(*csv_paths: str) -> list[Transaction]:
@@ -100,7 +100,7 @@ def _read_csob(file_path: str) -> list[Transaction]:
                         get_column(reader[0], "zpráva"),
                         get_column(reader[0], "číslo protiúčtu"),
                     ),
-                    counterparty=row[counterparty_col] or row[counterparty_number_col],
+                    info=row[counterparty_col] or row[counterparty_number_col],
                     date=row[date_col],
                 )
                 for row in reader[1:]
@@ -127,7 +127,9 @@ def _read_reiff(file_path: str) -> list[Transaction]:
                     get_category(
                         row[note_col], row[counterparty_col], row[counterparty_account_col]
                     ),
-                    counterparty=row[counterparty_col] or row[counterparty_account_col],
+                    info=row[counterparty_col]
+                    or row[counterparty_account_col]
+                    or row[note_col],
                     date=row[date_col],
                 )
                 for row in reader[1:]
@@ -146,6 +148,7 @@ def _read_creditas(file_path: str) -> list[Transaction]:
             counterparty_col = get_column(reader[0], "Protiúčet")
             counterparty_name_col = get_column(reader[0], "Název protiúčtu")
             date_col = get_column(reader[0], "Datum zaúčtování")
+            note_col = get_column(reader[0], "Zpráva pro protistranu")
             return [
                 Transaction(
                     "creditas",
@@ -153,11 +156,13 @@ def _read_creditas(file_path: str) -> list[Transaction]:
                     _extract_category(
                         row,
                         get_column(reader[0], "Kategorie"),
-                        get_column(reader[0], "Název protiúčtu"),
-                        get_column(reader[0], "Protiúčet"),
-                        get_column(reader[0], "Zpráva pro protistranu"),
+                        counterparty_name_col,
+                        counterparty_col,
+                        note_col,
                     ),
-                    counterparty=row[counterparty_name_col] or row[counterparty_col],
+                    info=row[counterparty_name_col]
+                    or row[counterparty_col]
+                    or row[note_col],
                     date=row[date_col],
                 )
                 for row in reader[1:]
@@ -185,7 +190,7 @@ def _read_unicredit(file_path: str) -> list[Transaction]:
                     "unicreditbank",
                     floatify(row[amount_col]),
                     get_unicredit_category(row),
-                    counterparty=row[target_col],
+                    info=(row[target_col] or row[details_col]).strip('", '),
                     date=row[date_col],
                 )
                 for row in reader[1:]
