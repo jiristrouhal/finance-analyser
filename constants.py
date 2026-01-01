@@ -1,0 +1,1 @@
+MAPPING_PATH = "mapping"

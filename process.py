@@ -1,7 +1,14 @@
 import dataclasses
+import json
+import os
 from collections import defaultdict
 
 from read import Transaction
+from constants import MAPPING_PATH as _MAPPING_PATH
+
+
+with open(os.path.join(_MAPPING_PATH, "mapping.json"), "r", encoding="utf-8") as f:
+    _TO_SKIP = set(dict(json.load(f))["skip"])
 
 
 @dataclasses.dataclass
@@ -15,6 +22,8 @@ def process_transactions(data: list[Transaction], days: int) -> Result:
     totals: dict[str, float] = defaultdict(float)
 
     for transaction in data:
+        if transaction.category in _TO_SKIP:
+            continue
         totals[transaction.category] += transaction.amount * (30 / days)
 
     total_incomes = {

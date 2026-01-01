@@ -50,6 +50,11 @@ with open("details.json", "w", encoding="utf-8") as details_file:
 with open("summary.json", "w", encoding="utf-8") as summary_file:
     json.dump(
         {
+            "totals": {
+                "incomes": round(total_income, 2),
+                "expenses": round(total_expense, 2),
+                "balance": round(total, 2),
+            },
             "incomes": {k: round(v, 2) for k, v in result.total_incomes.items()},
             "expenses": {k: round(v, 2) for k, v in result.total_expenses.items()},
             "zeros": list(result.zeros.keys()),
