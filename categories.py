@@ -30,12 +30,14 @@ def get_category(*keys: str) -> str:
     keys = tuple([key.strip() for key in keys if key.strip()])
     for key in keys:
         category = MAPPING["exact"].get(key, "")
+        if not category:
+            # There is no exact match, try partial matches
+            for pattern in MAPPING["partial"]:
+                if pattern in key.lower():
+                    category = MAPPING["partial"][pattern]
+                    break
         if category:
-            return category
-        # There is no exact match, try partial matches
-        for pattern in MAPPING["partial"]:
-            if pattern in key.lower():
-                return MAPPING["partial"][pattern]
+            return replace_category(category)
     return f"Nezařazeno {keys}"
 
 

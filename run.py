@@ -20,11 +20,29 @@ total = sum(result.total_incomes.values()) + sum(result.total_expenses.values())
 print(f"Bilance celkem:    {czk_format(total):>30}\n")
 
 
+REST_RATIO = 0.1
+cum_amount = 0.0
+below_threshold = True
 print("Příjmy:\n-------")
 for category, amount in result.total_incomes.items():
+    if below_threshold:
+        if cum_amount > (1 - REST_RATIO) * total_income:
+            print(f"------------ Zbylých < 10 % příjmů ------------")
+            below_threshold = False
+        else:
+            cum_amount += amount
+
     print(f"- {category:<30} {czk_format(amount):>15} {amount / total_income * 100:>6.1f}%")
+cum_amount = 0.0
+below_threshold = True
 print("\nVýdaje:\n-------")
 for category, amount in result.total_expenses.items():
+    if below_threshold:
+        if cum_amount < (1 - REST_RATIO) * total_expense:
+            print(f"------------ Zbylých < 10 % výdajů ------------")
+            below_threshold = False
+        else:
+            cum_amount += amount
     print(f"- {category:<30} {czk_format(amount):>15} {amount / total_expense * 100:>6.1f}%")
 print("\nNeutrální kategorie (0 CZK):\n-------")
 for category in result.zeros.keys():
