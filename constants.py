@@ -1,1 +1,1 @@
-MAPPING_PATH = "mapping"
+MAPPING_DIR = "mapping"

@@ -33,7 +33,9 @@ class Transaction:
     date: str = ""
 
     def __str__(self) -> str:
-        return f"({self.bank})\t-\t{self.category}: {self.amount:.2f} ({self.info}, {self.date}) CZK"
+        return (
+            f"({self.bank})\t-\t{self.category}: {self.amount:.2f} ({self.info}, {self.date}) CZK"
+        )
 
 
 def load_data(*csv_paths: str) -> list[Transaction]:
@@ -43,7 +45,7 @@ def load_data(*csv_paths: str) -> list[Transaction]:
         if base.startswith("csob"):
             data.extend(_read_csob(file))
         elif base.lower().startswith("raif"):
-            data.extend(_read_reiff(file))
+            data.extend(_read_raiff(file))
         elif base.lower().startswith("cred"):
             data.extend(_read_creditas(file))
         elif base.lower().startswith("unic"):
@@ -54,6 +56,14 @@ def load_data(*csv_paths: str) -> list[Transaction]:
 def collect_csv_paths() -> list[str]:
     paths = [os.path.join(DATA_PATH, path) for path in os.listdir(DATA_PATH)]
     csv_paths = [path for path in paths if os.path.isfile(path) and path.endswith(".csv")]
+    dir_paths = [path for path in paths if os.path.isdir(path)]
+    for dir_path in dir_paths:
+        dir_files = [
+            os.path.join(dir_path, path)
+            for path in os.listdir(dir_path)
+            if os.path.isfile(os.path.join(dir_path, path)) and path.endswith(".csv")
+        ]
+        csv_paths.extend(dir_files)
     for csv_path in csv_paths:
         bank = os.path.basename(csv_path).split("_")[0].lower()
         if not any(bank in bn for bn in BANK_NAMES):
@@ -88,6 +98,7 @@ def _read_csob(file_path: str) -> list[Transaction]:
             counterparty_number_col = get_column(reader[0], "číslo protiúčtu")
             counterparty_col = get_column(reader[0], "jméno protistrany")
             date_col = get_column(reader[0], "datum zaúčtování")
+            msg_col = get_column(reader[0], "zpráva")
             return [
                 Transaction(
                     "csob",
@@ -97,10 +108,10 @@ def _read_csob(file_path: str) -> list[Transaction]:
                         category_col,
                         get_column(reader[0], "jméno protistrany"),
                         get_column(reader[0], "vlastní poznámka"),
-                        get_column(reader[0], "zpráva"),
+                        msg_col,
                         get_column(reader[0], "číslo protiúčtu"),
                     ),
-                    info=row[counterparty_col] or row[counterparty_number_col],
+                    info=row[counterparty_col] or row[counterparty_number_col] or row[msg_col],
                     date=row[date_col],
                 )
                 for row in reader[1:]
@@ -110,7 +121,7 @@ def _read_csob(file_path: str) -> list[Transaction]:
         return []
 
 
-def _read_reiff(file_path: str) -> list[Transaction]:
+def _read_raiff(file_path: str) -> list[Transaction]:
     """Reads a CSV file and returns its content as a list of dictionaries."""
     try:
         with open(file_path, mode="r", newline="", encoding="utf-8") as csv_file:
@@ -120,16 +131,18 @@ def _read_reiff(file_path: str) -> list[Transaction]:
             counterparty_col = get_column(reader[0], "Název protiúčtu")
             counterparty_account_col = get_column(reader[0], "Číslo protiúčtu")
             date_col = get_column(reader[0], "Datum zaúčtování")
+            name_of_trader_col = get_column(reader[0], "Název obchodníka")
             return [
                 Transaction(
                     "raiffeisenbank",
                     floatify(row[amount_col]),
                     get_category(
-                        row[note_col], row[counterparty_col], row[counterparty_account_col]
+                        row[name_of_trader_col],
+                        row[note_col],
+                        row[counterparty_col],
+                        row[counterparty_account_col],
                     ),
-                    info=row[counterparty_col]
-                    or row[counterparty_account_col]
-                    or row[note_col],
+                    info=row[counterparty_col] or row[note_col] or row[counterparty_account_col],
                     date=row[date_col],
                 )
                 for row in reader[1:]
@@ -160,9 +173,7 @@ def _read_creditas(file_path: str) -> list[Transaction]:
                         counterparty_col,
                         note_col,
                     ),
-                    info=row[counterparty_name_col]
-                    or row[counterparty_col]
-                    or row[note_col],
+                    info=row[counterparty_name_col] or row[counterparty_col] or row[note_col],
                     date=row[date_col],
                 )
                 for row in reader[1:]

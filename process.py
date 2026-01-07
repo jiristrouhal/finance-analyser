@@ -4,11 +4,7 @@ import os
 from collections import defaultdict
 
 from read import Transaction
-from constants import MAPPING_PATH as _MAPPING_PATH
-
-
-with open(os.path.join(_MAPPING_PATH, "mapping.json"), "r", encoding="utf-8") as f:
-    _TO_SKIP = set(dict(json.load(f))["skip"])
+from categories import MAPPING
 
 
 @dataclasses.dataclass
@@ -20,9 +16,11 @@ class Result:
 
 def process_transactions(data: list[Transaction], days: int) -> Result:
     totals: dict[str, float] = defaultdict(float)
+    totals["Příjmy celkem"] = 0.0
+    totals["Výdaje celkem"] = 0.0
 
     for transaction in data:
-        if transaction.category in _TO_SKIP:
+        if transaction.category in MAPPING["skip"]:
             continue
         totals[transaction.category] += transaction.amount * (30 / days)
 
