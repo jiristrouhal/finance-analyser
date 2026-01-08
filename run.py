@@ -2,12 +2,42 @@ import json
 import sys
 from collections import defaultdict
 
-from read import load_data, czk_format, collect_csv_paths
+from read import load_data, czk_format, collect_csv_paths, Transaction
 from process import process_transactions
 
 
 csv_paths = collect_csv_paths()
 data = load_data(*csv_paths)
+transfers: list[Transaction] = [t for t in data if t.category == "Převod"]
+orig_transfers = transfers.copy()
+n = len(transfers)
+
+i = 0
+while i < len(transfers):
+    match_found = False
+    j = i + 1
+    while j < len(transfers):
+        if transfers[i].amount == -transfers[j].amount and transfers[i] != transfers[j]:
+            match_found = True
+            break
+        else:
+            j += 1
+    if match_found:
+        transfers.pop(j)
+        transfers.pop(i)
+    else:
+        i += 1
+
+
+if transfers:
+    print(f"Varování: Nalezeno {n - len(transfers)} spárovaných převodů z celkem {n} převodů.")
+    print("Následující převody nebyly spárovány, nelze pokračovat.")
+    for t in transfers:
+        print(f"- {t.bank}: {czk_format(t.amount)} dne {t.date}, info: {t.info}")
+    print()
+    exit(1)
+
+
 days = int(sys.argv[1]) if len(sys.argv) > 1 else 30
 result = process_transactions(data, days=days)
 
