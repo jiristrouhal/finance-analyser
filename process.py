@@ -14,8 +14,6 @@ class Result:
 
 def process_transactions(data: list[Transaction], days: int) -> Result:
     totals: dict[str, float] = defaultdict(float)
-    totals["Příjmy celkem"] = 0.0
-    totals["Výdaje celkem"] = 0.0
 
     for transaction in data:
         if transaction.category in MAPPING["skip"]:
