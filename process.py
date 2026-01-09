@@ -12,12 +12,14 @@ class Result:
     zeros: dict[str, float]
 
 
+def get_filtered_data(data: list[Transaction]) -> list[Transaction]:
+    return [t for t in data if t.category not in MAPPING["skip"]]
+
+
 def process_transactions(data: list[Transaction], days: int) -> Result:
     totals: dict[str, float] = defaultdict(float)
 
-    for transaction in data:
-        if transaction.category in MAPPING["skip"]:
-            continue
+    for transaction in get_filtered_data(data):
         totals[transaction.category] += transaction.amount * (30 / days)
 
     total_incomes = {
