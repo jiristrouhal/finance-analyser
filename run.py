@@ -95,6 +95,16 @@ with open("details.json", "w", encoding="utf-8") as details_file:
     json.dump(data_dict, details_file, ensure_ascii=False, indent=2)
 
 
+with open("summary.csv", "w", encoding="utf-8") as summary_csv:
+    summary_csv.write("Kategorie;Typ;Částka (CZK)\n")
+    for category, amount in result.total_incomes.items():
+        summary_csv.write(f"{category};Příjem;{round(amount,2)}\n")
+    for category, amount in result.total_expenses.items():
+        summary_csv.write(f"{category};Výdaj;{round(amount,2)}\n")
+    for category in result.zeros.keys():
+        summary_csv.write(f"{category};Neutrální;0.0\n")
+
+
 with open("summary.json", "w", encoding="utf-8") as summary_file:
     json.dump(
         {
