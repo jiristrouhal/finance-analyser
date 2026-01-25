@@ -2,7 +2,7 @@ import os
 import dataclasses
 from typing import Literal, get_args
 
-from utils import read_lines, get_column, floatify, czk_format
+from utils import read_lines, read_from_start_with, get_column, floatify, czk_format
 from categories import get_category, replace_category
 
 
@@ -11,7 +11,8 @@ BankName = Literal["csob", "raiffeisenbank", "creditas", "unicreditbank"]
 
 BANK_NAMES = set(get_args(BankName))
 
-DATA_PATH = "data"
+DATA_PARENT = "data"
+
 
 INVALID_CATEGORIES = {
     "Nezařazeno",
@@ -53,8 +54,9 @@ def load_data(*csv_paths: str) -> list[Transaction]:
     return data
 
 
-def collect_csv_paths() -> list[str]:
-    paths = [os.path.join(DATA_PATH, path) for path in os.listdir(DATA_PATH)]
+def collect_csv_paths(data_subfolder: str) -> list[str]:
+    data_path = os.path.join(DATA_PARENT, data_subfolder) if data_subfolder else DATA_PARENT
+    paths = [os.path.join(data_path, path) for path in os.listdir(data_path)]
     csv_paths = [path for path in paths if os.path.isfile(path) and path.endswith(".csv")]
     dir_paths = [path for path in paths if os.path.isdir(path)]
     for dir_path in dir_paths:
@@ -156,7 +158,7 @@ def _read_creditas(file_path: str) -> list[Transaction]:
     """Reads a CSV file and returns its content as a list of dictionaries."""
     try:
         with open(file_path, mode="r", newline="", encoding="utf-8-sig") as csv_file:
-            reader = read_lines(csv_file.readlines(), first=4)
+            reader = read_from_start_with(csv_file.readlines(), starting="Můj účet")
             amount_col = get_column(reader[0], "Částka")
             counterparty_col = get_column(reader[0], "Protiúčet")
             counterparty_name_col = get_column(reader[0], "Název protiúčtu")

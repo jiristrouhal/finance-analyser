@@ -6,7 +6,7 @@ from read import load_data, czk_format, collect_csv_paths, Transaction
 from process import process_transactions
 
 
-csv_paths = collect_csv_paths()
+csv_paths = collect_csv_paths("05_09_25")
 data = load_data(*csv_paths)
 transfers: list[Transaction] = [t for t in data if t.category == "Převod"]
 orig_transfers = transfers.copy()
