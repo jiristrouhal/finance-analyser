@@ -6,7 +6,11 @@ from read import load_data, czk_format, collect_csv_paths, Transaction
 from process import process_transactions
 
 
-csv_paths = collect_csv_paths("05_09_25")
+DATA_SUBFOLDER = "05_09_25"
+DATA_NAME = "05_09_25"
+
+
+csv_paths = collect_csv_paths(DATA_SUBFOLDER)
 data = load_data(*csv_paths)
 transfers: list[Transaction] = [t for t in data if t.category == "Převod"]
 orig_transfers = transfers.copy()
@@ -86,7 +90,7 @@ for category in result.zeros.keys():
     print(f"- {category}")
 
 
-with open("details.json", "w", encoding="utf-8") as details_file:
+with open(f"details {DATA_NAME}.json", "w", encoding="utf-8") as details_file:
 
     data_dict = defaultdict(list)
     for transaction in data:
@@ -102,7 +106,7 @@ with open("details.json", "w", encoding="utf-8") as details_file:
     json.dump(data_dict, details_file, ensure_ascii=False, indent=2)
 
 
-with open("summary.csv", "w", encoding="utf-8") as summary_csv:
+with open(f"summary {DATA_NAME}.csv", "w", encoding="utf-8") as summary_csv:
     summary_csv.write("Kategorie;Typ;Částka (CZK)\n")
     for category, amount in result.total_incomes.items():
         summary_csv.write(f"{category};Příjem;{round(amount,2)}\n")
@@ -112,7 +116,7 @@ with open("summary.csv", "w", encoding="utf-8") as summary_csv:
         summary_csv.write(f"{category};Neutrální;0.0\n")
 
 
-with open("summary.json", "w", encoding="utf-8") as summary_file:
+with open(f"summary {DATA_NAME}.json", "w", encoding="utf-8") as summary_file:
     json.dump(
         {
             "celkem": {
