@@ -13,6 +13,7 @@ orig_transfers = transfers.copy()
 n = len(transfers)
 
 i = 0
+matched_transactions: list[tuple[dict, dict]] = []
 while i < len(transfers):
     match_found = False
     j = i + 1
@@ -23,19 +24,25 @@ while i < len(transfers):
         else:
             j += 1
     if match_found:
-        transfers.pop(j)
-        transfers.pop(i)
+        t_a = transfers.pop(j)
+        t_b = transfers.pop(i)
+        matched_transactions.append((t_a.to_dict(), t_b.to_dict()))
     else:
         i += 1
 
 
 if transfers:
     print(f"Varování: Nalezeno {n - len(transfers)} spárovaných převodů z celkem {n} převodů.")
-    print("Následující převody nebyly spárovány, nelze pokračovat.")
+    print("Následující převody nebyly spárovány.")
     for t in transfers:
         print(f"- {t.bank}: {czk_format(t.amount)} dne {t.date}, info: {t.info}")
     print()
-    exit(1)
+    with open("transaction_matching.json", "w") as f:
+        transaction_matching = {
+            "matched": matched_transactions,
+            "unmatched": [t.to_dict() for r in transfers]
+        }
+        f.write(json.dumps(transaction_matching, indent=4, ensure_ascii=False))
 
 
 days = int(sys.argv[1]) if len(sys.argv) > 1 else 30

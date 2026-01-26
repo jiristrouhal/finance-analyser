@@ -8,3 +8,4 @@ summary*.json
 summary*.csv
 details*.json
 combined_summary.json
+transaction_matching.json

@@ -1,6 +1,6 @@
 import os
 import dataclasses
-from typing import Literal, get_args
+from typing import Any, Literal, get_args
 
 from utils import read_lines, read_from_start_with, get_column, floatify, czk_format
 from categories import get_category, replace_category
@@ -37,6 +37,15 @@ class Transaction:
         return (
             f"({self.bank})\t-\t{self.category}: {self.amount:.2f} ({self.info}, {self.date}) CZK"
         )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "bank": self.bank,
+            "amount": self.amount,
+            "category": self.category,
+            "info": self.info,
+            "date": self.date
+        }
 
 
 def load_data(*csv_paths: str) -> list[Transaction]:
